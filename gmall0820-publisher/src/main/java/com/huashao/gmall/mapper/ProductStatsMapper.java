@@ -1,0 +1,52 @@
+package com.huashao.gmall.mapper;
+
+import com.huashao.gmall.bean.ProductStats;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * Author: huashao
+ * Date: 2021/8/12
+ * Desc:  商品主题统计的Mapper接口
+ */
+public interface ProductStatsMapper {
+    //获取某一天商品的交易额, toYYYYMMDD()是把时间转为日期
+    /*本类ProductStatsMapper是一个接口 , mybatis是这个mapper的实现类，而
+    mybatis是使用反射和注解实现；（以前是使用配置文件的方式）.
+    注意 @Select注解的使用
+    #{date}是在请求参数中的。
+    */
+    @Select("select sum(order_amount) from product_stats_0820 where toYYYYMMDD(stt)=#{date}")
+    BigDecimal getGMV(int date);
+
+
+    /*
+    获取某一天不同品牌的交易额
+    如果mybatis的方法中，有多个参数，每个参数前需要用@Param注解指定参数的名称*/
+    @Select("select tm_id,tm_name,sum(order_amount) order_amount from product_stats_0820 " +
+            "where toYYYYMMDD(stt)=#{date} group by tm_id,tm_name having order_amount >0 " +
+            "order by order_amount desc limit #{limit}")
+    List<ProductStats> getProductStatsByTrademark(@Param("date") int date, @Param("limit") int limit);
+
+    /**
+     * 获取某一天不同品类的交易额
+     */
+    @Select("select category3_id,category3_name,sum(order_amount) order_amount from product_stats_0820 " +
+        " where toYYYYMMDD(stt)=#{date} group by category3_id,category3_name having order_amount >0 " +
+        " order by order_amount desc limit #{limit}")
+    List<ProductStats> getProductStatsByCategory3(@Param("date") int date, @Param("limit") int limit);
+
+
+    /**
+     * 获取某一天不同SPU的交易额
+     */
+    @Select("select spu_id,spu_name,sum(order_amount) order_amount,sum(order_ct) order_ct from product_stats_0820 " +
+        "where toYYYYMMDD(stt)=#{date} group by spu_id,spu_name having order_amount >0 order by order_amount desc " +
+        "limit #{limit}")
+    List<ProductStats> getProductStatsBySPU(@Param("date") int date, @Param("limit") int limit);
+}

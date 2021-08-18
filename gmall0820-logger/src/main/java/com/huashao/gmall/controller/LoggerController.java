@@ -1,0 +1,48 @@
+package com.huashao.gmall.controller;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Properties;
+
+/**
+ * Author: huashao
+ * Date: 2021/7/27
+ * Desc: 日志处理服务
+ * @Slf4j  lombok注解  辅助第三方记录日志框架
+ */
+@RestController
+@Slf4j
+public class LoggerController {
+
+
+    //KafkaTemplate是Spring提供对kafka操作的类
+
+    @Autowired //注入
+    KafkaTemplate kafkaTemplate;
+
+    @RequestMapping("/applog")
+    public String logger(@RequestParam("param") String jsonLog){
+        //1.打印输出到控制台
+//        System.out.println(jsonLog);
+        //2.落盘   借助记录日志的第三方框架 log4j [logback],这里使用的是logback
+        log.info(jsonLog);
+        //3.将生成的日主发送到kafka对应的主题中
+
+        /*
+         * 传统方式是用KafkaProducer.send()发出
+         * 在SpringBoot中可以使用简化的操作；
+         * send(topic,消息数据)方法，2个参数
+         */
+       kafkaTemplate.send("ods_base_log",jsonLog);
+
+        return "success";
+    }
+}
